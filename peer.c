@@ -52,7 +52,7 @@ struct credential_t we,they;
 
 unsigned char conneciton_id_validate(unsigned char *, int);
 void connect_to_client();
-void *connection_read( void *);
+void *chat_read( void *);
 void on_receive(void);
 /****************************************************************************
  *
@@ -203,9 +203,9 @@ unsigned char conneciton_id_validate(unsigned char *connectionID, int lenID)
 	
 	unsigned char buf[1024];
 	unsigned char r_server[40];
+	unsigned char state;
+	unsigned int  pingInterval=500, pingCount=0, timeCount=0;
 	
-	sprintf(buf, "Hello !!!");
-
 	memset((char *) &remaddr, 0, sizeof(remaddr));
 	remaddr.sin_family = AF_INET;
 	remaddr.sin_port = htons(they.publicPORT);
@@ -219,47 +219,9 @@ unsigned char conneciton_id_validate(unsigned char *connectionID, int lenID)
 	}
 	
 	
-	pthread_t thread1;
-	pthread_create( &thread1, NULL, connection_read, NULL);
-
-	unsigned char send_msg[1024]={0};
+	pthread_t thread_chat;
+	pthread_create( &thread_chat, NULL, chat_read, NULL);
 	
-	printf("Type Something .. Hit  Enter !! Enjoy\n\r");	
-	while(1) 
-	{
-		usleep(100);
-		memset(buf,0,sizeof(buf));
-		memset(send_msg,0,sizeof(send_msg));
-
-		fgets(send_msg,sizeof(send_msg),stdin);
-			
-		buf[0] = PACKET_CHAT;
-		sprintf(&buf[4],"%s",send_msg);
-		if (sendto(fd, buf, 4 + strlen(send_msg), 0, (struct sockaddr *)&remaddr, slen)==-1) {}
-		
-	}
- }
-
-/****************************************************************************
- *
- * NAME:
- *
- * DESCRIPTION:
- *
- * PARAMETERS:      Name            RW  Usage
- * None.
- *
- * RETURNS:
- * None.
- *
- * NOTES:
- * None.
- ****************************************************************************/
-void *connection_read( void *ptr )
-{
-	unsigned char buf[1024];
-	unsigned char state;
-	unsigned int  pingInterval=500, pingCount=0, timeCount=0;
 	
 	while(1)
 	{
@@ -310,5 +272,42 @@ void *connection_read( void *ptr )
         
         
 	}
+ }
+
+/****************************************************************************
+ *
+ * NAME:
+ *
+ * DESCRIPTION:
+ *
+ * PARAMETERS:      Name            RW  Usage
+ * None.
+ *
+ * RETURNS:
+ * None.
+ *
+ * NOTES:
+ * None.
+ ****************************************************************************/
+void *chat_read( void *ptr )
+{
+	unsigned char send_msg[1024]={0};
+	unsigned char buf[1024]={0};
+	
+	printf("Type Something .. Hit  Enter !! Enjoy\n\r");	
+	while(1) 
+	{
+		usleep(100);
+		memset(buf,0,sizeof(buf));
+		memset(send_msg,0,sizeof(send_msg));
+
+		fgets(send_msg,sizeof(send_msg),stdin);
+			
+		buf[0] = PACKET_CHAT;
+		sprintf(&buf[4],"%s",send_msg);
+		if (sendto(fd, buf, 4 + strlen(send_msg), 0, (struct sockaddr *)&remaddr, slen)==-1) {}
+		
+	}
+ 
 }
 
