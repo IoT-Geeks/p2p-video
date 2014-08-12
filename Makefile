@@ -4,7 +4,7 @@ LDLIBS = -lpthread
 
 EXEC= peer
 
-SOURCE= peer.c ip-conv.c peer_parser.c stun_client.c bin_str_conv.c
+SOURCE= peer.c ip-conv.c peer_parser.c stun_client.c bin_str_conv.c file_packet_parser.c
 
 OBJS= ${SOURCE:.c=.o}
 
