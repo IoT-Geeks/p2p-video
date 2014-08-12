@@ -30,10 +30,14 @@ SOFTWARE.
 #include <netdb.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "peer.h"
 #include "ip-conv.h"
 #include "peer_parser.h"
+#include "file_packet_parser.h"
 
 #define MSG_NOBLOCK 0x01
 #define BUFLEN 		2048
@@ -54,6 +58,7 @@ unsigned char conneciton_id_validate(unsigned char *, int);
 void connect_to_client();
 void *chat_read( void *);
 void on_receive(void);
+void send_file_ack(char *,int ,int);
 /****************************************************************************
  *
  * NAME:
@@ -265,12 +270,36 @@ unsigned char conneciton_id_validate(unsigned char *connectionID, int lenID)
 			}
 			else if(state == PACKET_CHAT)
 			{
-				printf("Friend: %s\n\r",&buf[4]);
+				if(strncmp(&buf[4],"GET",3) == 0)
+				{
+					printf("Got File get command\n");
+					struct stat finfo;
+					char *filename = (char*) "sendfile.txt";
+					struct file_property_t file_property;
+					unsigned char *data_send = buf;
+					if (-1 == stat(filename, &finfo))
+					 	fprintf(stderr,"error stating file!\n");
+					printf("File '%s' of size '%d' bytes opened and ready to send filename\n", filename, (int)finfo.st_size );
+					memset(buf,0,sizeof(buf));
+					
+					buf[0] = PACKET_FILE;
+					data_send = data_send + 4;
+					data_send += snprintf(data_send,1,"%c",START_PACKET);
+					file_property.size = (int)finfo.st_size;
+					file_property.data_packet_size = 512;
+					sprintf(file_property.file_name,"%s",filename);
+					memcpy(data_send,&file_property,sizeof(struct file_property_t));
+					data_send += sizeof(struct file_property_t);
+					sendto(fd, buf, (int)(data_send - buf), 0, (struct sockaddr *)&remaddr, slen);
+				}
+				else
+					printf("Friend: %s\n\r",&buf[4]);
 			}
 			else if(state == PACKET_FILE)
 			{
 				printf("Packet for File\n\r");
 				file_parser_ret = file_packet_parser(&buf[PACKET_STATE_HEADER_BYTES], recvlen - PACKET_STATE_HEADER_BYTES);
+				send_file_ack(buf,file_parser_ret,recvlen);
 			}
 			memset(buf,0,sizeof(buf));
         }
@@ -316,3 +345,39 @@ void *chat_read( void *ptr )
  
 }
 
+/****************************************************************************
+ *
+ * NAME:
+ *
+ * DESCRIPTION:
+ *
+ * PARAMETERS:      Name            RW  Usage
+ * None.
+ *
+ * RETURNS:
+ * None.
+ *
+ * NOTES:
+ * None.
+ ****************************************************************************/
+void send_file_ack(char *buf_data,int retun_ack, int len_packet)
+{
+	if(buf_data[4] == retun_ack)
+		return;  /*This part for server return*/
+	buf_data[4] = retun_ack;
+	switch(retun_ack)
+	{
+		case START_ACK:
+			sendto(fd, buf_data, len_packet, 0, (struct sockaddr *)&remaddr, slen);
+			break;
+		case DATA_ACK:
+			sendto(fd, buf_data, 9, 0, (struct sockaddr *)&remaddr, slen);
+			break;
+		case EOF_ACK:
+			sendto(fd, buf_data, 10, 0, (struct sockaddr *)&remaddr, slen);
+			break;
+		default:
+			break;
+	}
+	
+}
