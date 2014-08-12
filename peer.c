@@ -45,7 +45,7 @@ int connection_count=0;
 int connection_timeout=0;
 int fd, i, slen=sizeof(remaddr);
 char buff[BUFLEN];	
-int recvlen;		
+int recvlen,file_parser_ret;		
 
 struct credential_t we,they;
 
@@ -266,6 +266,11 @@ unsigned char conneciton_id_validate(unsigned char *connectionID, int lenID)
 			else if(state == PACKET_CHAT)
 			{
 				printf("Friend: %s\n\r",&buf[4]);
+			}
+			else if(state == PACKET_FILE)
+			{
+				printf("Packet for File\n\r");
+				file_parser_ret = file_packet_parser(&buf[PACKET_STATE_HEADER_BYTES], recvlen - PACKET_STATE_HEADER_BYTES);
 			}
 			memset(buf,0,sizeof(buf));
         }

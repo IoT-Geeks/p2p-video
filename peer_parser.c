@@ -56,6 +56,8 @@ int peer_parser(unsigned char *data, int dataLen)
 			return PACKET_PONG;
 		case PACKET_CHAT:
 			return PACKET_CHAT;
+		case PACKET_FILE:
+			return PACKET_FILE;
 		default:
 			return PACKET_UNKNOWN;
 	}
