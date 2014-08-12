@@ -27,7 +27,15 @@ SOFTWARE.
 #include <string.h>
 #include "file_packet_parser.h"
 
-int file_packet_parser(unsigned char *, int);
+struct file_property_t file_property;
+
+int file_packet_START_PACKET(unsigned char *, int);
+int file_packet_START_ACK(unsigned char *, int);
+int file_packet_DATA_PACKET(unsigned char *, int);
+int file_packet_DATA_ACK(unsigned char *, int);
+int file_packet_EOF_PACKET(unsigned char *, int);
+int file_packet_EOF_ACK(unsigned char *, int);
+
 
 /****************************************************************************
  *
@@ -49,23 +57,143 @@ int file_packet_parser(unsigned char *data, int dataLen)
 	switch(data[0])
 	{
 		case START_PACKET:
-			memset(&file_property,0,sizeof(struct file_property_t));
-			memcpy(&data[1],&file_property,dataLen - 1);
-			printf("File %s size %d and block size %d\n",file_property.file_name,file_property.size,file_property.data_packet_size);
+			file_packet_START_PACKET(&data[1], dataLen -1);
 			return START_PACKET;
+			
 		case START_ACK:
+			file_packet_START_ACK(&data[1], dataLen -1);
 			return START_ACK;
+			
 		case DATA_PACKET:
+			file_packet_DATA_PACKET(&data[1], dataLen -1);
 			return DATA_PACKET;
+			
 		case DATA_ACK:
+			file_packet_DATA_ACK(&data[1], dataLen -1);
 			return DATA_ACK;
+			
 		case EOF_PACKET:
+			file_packet_EOF_PACKET(&data[1], dataLen -1);
 			return EOF_PACKET;
+			
 		case EOF_ACK:
+			file_packet_EOF_ACK(&data[1], dataLen -1);
 			return EOF_ACK;
+			
 		default:
 			return FILE_PACKET_UNKNOWN;
 	}
 	
 	return FILE_PACKET_UNKNOWN;
+}
+/****************************************************************************
+ *
+ * NAME:
+ *
+ * DESCRIPTION:
+ *
+ * PARAMETERS:      Name            RW  Usage
+ * None.
+ *
+ * RETURNS:
+ * None.
+ *
+ * NOTES:
+ * None.
+ ****************************************************************************/
+int file_packet_START_PACKET(unsigned char *data, int dataLen)
+{
+	memset(&file_property,0,sizeof(struct file_property_t));
+	memcpy(&file_property,&data[1],dataLen - 1);
+	printf("File %s size %d and block size %d\n",file_property.file_name,file_property.size,file_property.data_packet_size);
+}
+/****************************************************************************
+ *
+ * NAME:
+ *
+ * DESCRIPTION:
+ *
+ * PARAMETERS:      Name            RW  Usage
+ * None.
+ *
+ * RETURNS:
+ * None.
+ *
+ * NOTES:
+ * None.
+ ****************************************************************************/
+int file_packet_START_ACK(unsigned char *data, int dataLen)
+{
+}
+/****************************************************************************
+ *
+ * NAME:
+ *
+ * DESCRIPTION:
+ *
+ * PARAMETERS:      Name            RW  Usage
+ * None.
+ *
+ * RETURNS:
+ * None.
+ *
+ * NOTES:
+ * None.
+ ****************************************************************************/
+int file_packet_DATA_PACKET(unsigned char *data, int dataLen)
+{
+}
+/****************************************************************************
+ *
+ * NAME:
+ *
+ * DESCRIPTION:
+ *
+ * PARAMETERS:      Name            RW  Usage
+ * None.
+ *
+ * RETURNS:
+ * None.
+ *
+ * NOTES:
+ * None.
+ ****************************************************************************/
+int file_packet_DATA_ACK(unsigned char *data, int dataLen)
+{
+}
+/****************************************************************************
+ *
+ * NAME:
+ *
+ * DESCRIPTION:
+ *
+ * PARAMETERS:      Name            RW  Usage
+ * None.
+ *
+ * RETURNS:
+ * None.
+ *
+ * NOTES:
+ * None.
+ ****************************************************************************/
+int file_packet_EOF_PACKET(unsigned char *data, int dataLen)
+{
+}
+/****************************************************************************
+ *
+ * NAME:
+ *
+ * DESCRIPTION:
+ *
+ * PARAMETERS:      Name            RW  Usage
+ * None.
+ *
+ * RETURNS:
+ * None.
+ *
+ * NOTES:
+ * None.
+ ****************************************************************************/
+int file_packet_EOF_ACK(unsigned char *data, int dataLen)
+{
 }

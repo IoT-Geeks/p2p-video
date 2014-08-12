@@ -14,4 +14,4 @@ struct __attribute__((packed)) file_property_t
 	unsigned short data_packet_size;
 	unsigned char file_name[64];
 	
-}file_property;
+};
